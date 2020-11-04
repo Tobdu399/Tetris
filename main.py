@@ -39,27 +39,27 @@ class Piece:
         y = 0
         for row in self.shape[self.rotation % len(self.shape)]:
             for col in row:
-                if col == "0" and self.y+y == HEIGHT-(6*grid):
-                    self.collision = True
                 if col == "0":
+                    if self.y+y == HEIGHT-(6*grid):
+                        self.collision = True
                     pygame.draw.rect(display, self.color, (self.x+x, self.y+y, grid, grid))
+                    
+                    for _ in locked_shapes:
+                        lckd_x = 0
+                        lckd_y = 0
+                        locked_shape = _.shape[_.rotation % len(_.shape)]
+                        for lckd_row in locked_shape:
+                            for lckd_col in lckd_row:
+                                if lckd_col == "0":
+                                    if _.x+lckd_x == self.x+x and _.y+lckd_y == self.y+y:
+                                        self.collision = True
+                                    pygame.draw.rect(display, _.color, (_.x+lckd_x, _.y+lckd_y, grid, grid))
+                                lckd_x += grid
+                            lckd_x = 0
+                            lckd_y += grid
                 x += grid
             x = 0
             y += grid
-            
-            for _ in locked_shapes:
-                lckd_x = 0
-                lckd_y = 0
-                locked_shape = _.shape[_.rotation % len(_.shape)]
-                for lckd_row in locked_shape:
-                    for lckd_col in lckd_row:
-                        if lckd_col == "0" and _.x+lckd_x == self.x+x and _.y+lckd_y == self.y+y:
-                            print("collision detected!")
-                        if lckd_col == "0":
-                            pygame.draw.rect(display, _.color, (_.x+lckd_x, _.y+lckd_y, grid, grid))
-                        lckd_x += grid
-                    lckd_x = 0
-                    lckd_y += grid
 
 def move_piece():
     while not GAMEOVER:
