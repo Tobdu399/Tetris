@@ -44,19 +44,19 @@ class Piece:
                         self.collision = True
                     pygame.draw.rect(display, self.color, (self.x+x, self.y+y, grid, grid))
                     
-                    for _ in locked_shapes:
+                for _ in locked_shapes:
+                    lckd_x = 0
+                    lckd_y = 0
+                    locked_shape = _.shape[_.rotation % len(_.shape)]
+                    for lckd_row in locked_shape:
+                        for lckd_col in lckd_row:
+                            if lckd_col == "0":
+                                if col == "0" and (_.x+lckd_x)-grid == self.x+x and (_.y+lckd_y)-grid == self.y+y:
+                                    self.collision = True
+                                pygame.draw.rect(display, _.color, (_.x+lckd_x, _.y+lckd_y, grid, grid))
+                            lckd_x += grid
                         lckd_x = 0
-                        lckd_y = 0
-                        locked_shape = _.shape[_.rotation % len(_.shape)]
-                        for lckd_row in locked_shape:
-                            for lckd_col in lckd_row:
-                                if lckd_col == "0":
-                                    if _.x+lckd_x == self.x+x and _.y+lckd_y == self.y+y:
-                                        self.collision = True
-                                    pygame.draw.rect(display, _.color, (_.x+lckd_x, _.y+lckd_y, grid, grid))
-                                lckd_x += grid
-                            lckd_x = 0
-                            lckd_y += grid
+                        lckd_y += grid
                 x += grid
             x = 0
             y += grid
@@ -125,4 +125,4 @@ while not GAMEOVER:
                 piece.y += grid
 
     pygame.display.update()
-    clock.tick(90)
+    clock.tick(60)
