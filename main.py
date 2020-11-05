@@ -11,11 +11,14 @@ pygame.init()
 path = pathlib.Path(__file__).resolve().parent
 font = str(path) + "/lib/font.ttf"
 
+SCORE = 0
+
 grid = 20
 black = pygame.Color(0, 0, 0)
 grey = pygame.Color(50, 50, 50)
 light_grey = pygame.Color(190, 190, 190)
 blue = pygame.Color(0, 0, 255)
+white = pygame.Color(255, 255, 255)
 
 clock = pygame.time.Clock()
 display = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -51,7 +54,7 @@ class Piece:
                     for lckd_row in locked_shape:
                         for lckd_col in lckd_row:
                             if lckd_col == "0":
-                                if col == "0" and (_.x+lckd_x)-grid == self.x+x and (_.y+lckd_y)-grid == self.y+y:
+                                if col == "0" and (_.x+lckd_x) == self.x+x and (_.y+lckd_y) == self.y+y:
                                     self.collision = True
                                 pygame.draw.rect(display, _.color, (_.x+lckd_x, _.y+lckd_y, grid, grid))
                             lckd_x += grid
@@ -60,6 +63,10 @@ class Piece:
                 x += grid
             x = 0
             y += grid
+    
+    def move(self, x_dir, y_dir):
+        self.x += x_dir*grid
+        self.y += y_dir*grid
 
 def move_piece():
     while not GAMEOVER:
@@ -80,6 +87,14 @@ def draw_borders(surface, color):
     pygame.draw.rect(surface, color, (0, HEIGHT-(5*grid), WIDTH, 5*grid))
     pygame.draw.rect(surface, color, (0, 0, grid, HEIGHT))
     pygame.draw.rect(surface, color, (WIDTH-grid, 0, grid, HEIGHT))
+    
+def draw_scoreboard(surface, color):
+    pygame.draw.rect(surface, color, (grid, HEIGHT-(4*grid), WIDTH-(grid*2), HEIGHT-(HEIGHT-(3*grid))), border_radius = 5)
+
+def show_score(surface, color, font, font_size):
+    score_font = pygame.font.Font(font, font_size)
+    score = score_font.render("Score: " + str(SCORE), True, color)
+    surface.blit(score, (grid*1.5, HEIGHT-(3.8*grid), WIDTH-(grid*2.5), HEIGHT-(HEIGHT-(3*grid))))
 
 def show_fps(surface, font_size, color, xy):
     fps_font = pygame.font.Font(font, font_size)
@@ -101,28 +116,35 @@ while not GAMEOVER:
 
     draw_grid(display, grid, grey)
     draw_borders(display, light_grey)
-    show_fps(display, 15, black, (2, 2))
+    
+    # Scoreboard
+    draw_scoreboard(display, white)
+    show_score(display, black, font, 17)
+    # show_fps(display, 15, black, (2, 2))
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             GAMEOVER = True
-            pygame.quit()
-            exit()
         
-        if event.type == pygame.KEYDOWN:
-            #! grid = one block
-            
+        if event.type == pygame.KEYDOWN: 
+            if event.key == pygame.K_ESCAPE:
+                GAMEOVER = True
+                       
             # Rotate
             if event.key == pygame.K_UP:
                 piece.rotation += 1
             
             # Move
             if event.key == pygame.K_RIGHT:
-                piece.x += grid
+                piece.move(1, 0)
             if event.key == pygame.K_LEFT:
-                piece.x -= grid
+                piece.move(-1, 0)
             if event.key == pygame.K_DOWN:
-                piece.y += grid
+                piece.move(0, 1)
 
     pygame.display.update()
-    clock.tick(60)
+    clock.tick(144)
+
+
+pygame.quit()
+exit()
