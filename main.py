@@ -1,21 +1,23 @@
-import pygame, pathlib, time, threading, random, shapes
+import pygame, pathlib, threading, random, shapes
 from itertools import groupby
 
 GAMEOVER = False
 
-WIDTH = 400
+WIDTH = 360
 HEIGHT = 600
 
 pygame.init()
 
 path = pathlib.Path(__file__).resolve().parent
 font = str(path) + "/lib/font.ttf"
+background = pygame.image.load(str(path) + "/lib/background.jpg")
 
 SCORE = 0
 
 grid = 20
 black = pygame.Color(0, 0, 0)
-grey = pygame.Color(50, 50, 50)
+# grey = pygame.Color(50, 50, 50)
+grey = pygame.Color(200, 200, 200)
 light_grey = pygame.Color(190, 190, 190)
 blue = pygame.Color(0, 0, 255)
 white = pygame.Color(255, 255, 255)
@@ -36,6 +38,8 @@ class Piece:
         self.rotation = 0
         self.color = color
         self.collision = False
+        
+        self.next_piece = [random.choice(shapes_list), random.choice(colors_list)]
     
     def show(self):
         x = 0
@@ -43,7 +47,7 @@ class Piece:
         for row in self.shape[self.rotation % len(self.shape)]:
             for col in row:
                 if col == "0":
-                    if self.y+y == HEIGHT-(6*grid):
+                    if self.y+y == HEIGHT-(8*grid):
                         self.collision = True
                     pygame.draw.rect(display, self.color, (self.x+x, self.y+y, grid, grid))
                     
@@ -54,7 +58,7 @@ class Piece:
                     for lckd_row in locked_shape:
                         for lckd_col in lckd_row:
                             if lckd_col == "0":
-                                if col == "0" and (_.x+lckd_x) == self.x+x and (_.y+lckd_y) == self.y+y:
+                                if col == "0" and (_.x+lckd_x) == self.x+x and (_.y+lckd_y)-grid == self.y+y:
                                     self.collision = True
                                 pygame.draw.rect(display, _.color, (_.x+lckd_x, _.y+lckd_y, grid, grid))
                             lckd_x += grid
@@ -65,13 +69,13 @@ class Piece:
             y += grid
     
     def move(self, x_dir, y_dir):
-        self.x += x_dir*grid
         self.y += y_dir*grid
+        self.x += x_dir*grid
 
 def move_piece():
     while not GAMEOVER:
-        time.sleep(1)
-        piece.y += grid
+        pygame.time.wait(1000)
+        piece.move(0, 1)
 
 def all_equal(iterable):
     g = groupby(iterable)
@@ -89,12 +93,30 @@ def draw_borders(surface, color):
     pygame.draw.rect(surface, color, (WIDTH-grid, 0, grid, HEIGHT))
     
 def draw_scoreboard(surface, color):
-    pygame.draw.rect(surface, color, (grid, HEIGHT-(4*grid), WIDTH-(grid*2), HEIGHT-(HEIGHT-(3*grid))), border_radius = 5)
+    pygame.draw.rect(surface, color, (grid, HEIGHT-(6*grid), WIDTH-(grid*8), HEIGHT-(HEIGHT-(5*grid))), border_radius = 5)
+
+def draw_gameboard(surface, color):
+    display.blit(background, (0, 0))
+    pygame.draw.rect(display, black, (grid, 0, WIDTH-(grid*2), HEIGHT-(7*grid)))
+
+def show_next_piece(surface):
+    x = 0
+    y = 0
+
+    pygame.draw.rect(surface, grey, (WIDTH-(grid*len(piece.next_piece[0][0])+grid), HEIGHT-(6*grid), WIDTH-(WIDTH-(grid*len(piece.next_piece[0][0])+grid)+grid), HEIGHT-(HEIGHT-grid*5)), border_radius=5)
+    for row in piece.next_piece[0][0]:
+        for col in row:
+            if col == "0":
+                pygame.draw.rect(surface, piece.next_piece[1], (WIDTH-(grid*len(row)+grid)+x, HEIGHT-(6*grid)+y, grid, grid))
+            x += grid
+        x = 0
+        y += grid
+        
 
 def show_score(surface, color, font, font_size):
     score_font = pygame.font.Font(font, font_size)
     score = score_font.render("Score: " + str(SCORE), True, color)
-    surface.blit(score, (grid*1.5, HEIGHT-(3.8*grid), WIDTH-(grid*2.5), HEIGHT-(HEIGHT-(3*grid))))
+    surface.blit(score, (grid*1.5, HEIGHT-(5.8*grid)))
 
 def show_fps(surface, font_size, color, xy):
     fps_font = pygame.font.Font(font, font_size)
@@ -106,21 +128,22 @@ threading.Thread(target = move_piece).start()
 piece = Piece(random.choice(shapes_list), random.choice(colors_list))
 
 while not GAMEOVER:
-    display.fill(black)
-
+    draw_gameboard(display, black)
+    # draw_grid(display, grid, grey)
+    # draw_borders(display, light_grey)
+    
     piece.show()
 
     if piece.collision:
         locked_shapes.append(piece)
-        piece = Piece(random.choice(shapes_list), random.choice(colors_list))
-
-    draw_grid(display, grid, grey)
-    draw_borders(display, light_grey)
+        piece = Piece(piece.next_piece[0], piece.next_piece[1])
     
     # Scoreboard
-    draw_scoreboard(display, white)
+    draw_scoreboard(display, grey)
     show_score(display, black, font, 17)
+
     # show_fps(display, 15, black, (2, 2))
+    show_next_piece(display)
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -143,7 +166,7 @@ while not GAMEOVER:
                 piece.move(0, 1)
 
     pygame.display.update()
-    clock.tick(144)
+    clock.tick(60)
 
 
 pygame.quit()
