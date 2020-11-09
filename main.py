@@ -69,6 +69,21 @@ class Piece:
             y += grid
     
     def move(self, x_dir, y_dir):
+        #! TODO: hard drop (space key)
+        # remove spinning through wall
+             
+        x = 0
+        y = 0
+        for row in self.shape[self.rotation % len(self.shape)]:
+            for col in row:
+                if col == "0":
+                    if self.x+x == grid and x_dir < 0 or self.x+x == WIDTH-(grid*2) and x_dir > 0:
+                        x_dir = 0
+                       
+                x += grid
+            x = 0
+            y += grid
+        
         self.y += y_dir*grid
         self.x += x_dir*grid
 
