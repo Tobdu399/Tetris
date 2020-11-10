@@ -32,12 +32,12 @@ locked_shapes = []
 
 class Piece:
     def __init__(self, shape, color):
-        self.x = grid
-        self.y = 0
         self.shape = shape
         self.rotation = 0
         self.color = color
         self.collision = False
+        self.x = int(WIDTH/2 - grid*2)
+        self.y = -grid
         
         self.next_piece = [random.choice(shapes_list), random.choice(colors_list)]
     
@@ -49,6 +49,7 @@ class Piece:
                 if col == "0":
                     if self.y+y == HEIGHT-(8*grid):
                         self.collision = True
+                    
                     pygame.draw.rect(display, self.color, (self.x+x, self.y+y, grid, grid))
                     
                 for _ in locked_shapes:
@@ -57,7 +58,7 @@ class Piece:
                     locked_shape = _.shape[_.rotation % len(_.shape)]
                     for lckd_row in locked_shape:
                         for lckd_col in lckd_row:
-                            if lckd_col == "0":
+                            if lckd_col == "0":                                
                                 if col == "0" and (_.x+lckd_x) == self.x+x and (_.y+lckd_y)-grid == self.y+y:
                                     self.collision = True
                                 pygame.draw.rect(display, _.color, (_.x+lckd_x, _.y+lckd_y, grid, grid))
@@ -69,7 +70,7 @@ class Piece:
             y += grid
     
     def move(self, x_dir, y_dir):
-        #! TODO: hard drop (space key)
+        # TODO: hard drop (space key)
         # remove spinning through wall
              
         x = 0
@@ -86,10 +87,13 @@ class Piece:
         
         self.y += y_dir*grid
         self.x += x_dir*grid
+    
+    def drop(self):
+        pass
 
 def move_piece():
     while not GAMEOVER:
-        pygame.time.wait(1000)
+        pygame.time.wait(1000)  # Ms
         piece.move(0, 1)
 
 def all_equal(iterable):
@@ -133,13 +137,8 @@ def show_score(surface, color, font, font_size):
     score = score_font.render("Score: " + str(SCORE), True, color)
     surface.blit(score, (grid*1.5, HEIGHT-(5.8*grid)))
 
-def show_fps(surface, font_size, color, xy):
-    fps_font = pygame.font.Font(font, font_size)
-    fps = fps_font.render(str(int(clock.get_fps())), True, color)
-    surface.blit(fps, (xy[0], xy[1]))
 
 threading.Thread(target = move_piece).start()
-
 piece = Piece(random.choice(shapes_list), random.choice(colors_list))
 
 while not GAMEOVER:
@@ -157,7 +156,6 @@ while not GAMEOVER:
     draw_scoreboard(display, grey)
     show_score(display, black, font, 17)
 
-    # show_fps(display, 15, black, (2, 2))
     show_next_piece(display)
     
     for event in pygame.event.get():
